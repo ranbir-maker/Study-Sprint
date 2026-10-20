@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>StudySprint — Student Study Planner</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="header-content">
+        <div>
+          <h1 class="logo-title">StudySprint</h1>
+          <p class="logo-subtitle">Simple homework management and focus timer for students</p>
+        </div>
+        <div class="today-badge" id="currentDateDisplay" aria-label="Today's Date">
+          <!-- Populated by JavaScript -->
+        </div>
+      </div>
+    </header>
+
+    <!-- Progress Summary Cards -->
+    <section class="section-container" aria-labelledby="progress-heading">
+      <h2 id="progress-heading" class="section-title">Today's Progress</h2>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-label">Tasks Completed</div>
+          <div class="stat-value" id="statTasksToday">0</div>
+          <div class="stat-subtext">Completed today</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Study Sessions</div>
+          <div class="stat-value" id="statSessionsToday">0</div>
+          <div class="stat-subtext">25-min sessions today</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Total Study Time</div>
+          <div class="stat-value" id="statMinutesToday">0 <span class="stat-unit">mins</span></div>
+          <div class="stat-subtext">Focus time today</div>
+        </div>
+      </div>
+
+      <!-- Weekly Study Summary -->
+      <div class="weekly-card">
+        <div class="weekly-header">
+          <h3 class="weekly-title">Last 7 Days Study Activity</h3>
+          <span class="weekly-subtitle" id="weeklyTotalSubtitle">0 total sessions</span>
+        </div>
+        <div class="weekly-list" id="weeklySummaryList">
+          <!-- Populated by JavaScript -->
+        </div>
+      </div>
+    </section>
+
+    <!-- Main Content Area: 2 Columns on desktop -->
+    <div class="main-grid">
+      <!-- Study Timer Section -->
+      <section class="card timer-card" aria-labelledby="timer-heading">
+        <h2 id="timer-heading" class="section-title">Study Timer</h2>
+        <p class="card-description">Set a custom study sprint (up to 10 hours).</p>
+
+        <div class="timer-display-wrap">
+          <div class="timer-display" id="timerDisplay" aria-live="polite">00:25:00</div>
+          
+          <!-- Editable duration inputs -->
+          <div class="timer-inputs-wrapper" id="timerInputsWrapper">
+            <span class="timer-input-title">Set Duration (max 10h):</span>
+            <div class="timer-inputs-row">
+              <div class="time-input-field">
+                <input 
+                  type="number" 
+                  id="timerHoursInput" 
+                  min="0" 
+                  max="10" 
+                  value="0" 
+                  aria-label="Timer Hours"
+                >
+                <span class="time-input-unit">hr</span>
+              </div>
+              <span class="time-input-sep">:</span>
+              <div class="time-input-field">
+                <input 
+                  type="number" 
+                  id="timerMinutesInput" 
+                  min="0" 
+                  max="59" 
+                  value="25" 
+                  aria-label="Timer Minutes"
+                >
+                <span class="time-input-unit">min</span>
+              </div>
+              <span class="time-input-sep">:</span>
+              <div class="time-input-field">
+                <input 
+                  type="number" 
+                  id="timerSecondsInput" 
+                  min="0" 
+                  max="59" 
+                  value="0" 
+                  aria-label="Timer Seconds"
+                >
+                <span class="time-input-unit">sec</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="timer-status" id="timerStatus">Ready to focus</div>
+        </div>
+
+        <!-- Quick Presets -->
+        <div class="timer-presets" id="timerPresets" aria-label="Timer presets">
+          <button type="button" class="btn-preset active" data-hours="0" data-mins="25">25m</button>
+          <button type="button" class="btn-preset" data-hours="0" data-mins="45">45m</button>
+          <button type="button" class="btn-preset" data-hours="1" data-mins="0">1h</button>
+          <button type="button" class="btn-preset" data-hours="2" data-mins="0">2h</button>
+          <button type="button" class="btn-preset" data-hours="5" data-mins="0">5h</button>
+          <button type="button" class="btn-preset" data-hours="10" data-mins="0">10h</button>
+        </div>
+
+        <div class="timer-alert" id="timerAlert" role="alert" style="display: none;">
+          🎉 Well done! You completed your study session. Take a short break!
+        </div>
+
+        <div class="timer-controls">
+          <button type="button" id="startTimerBtn" class="btn btn-primary">Start</button>
+          <button type="button" id="pauseTimerBtn" class="btn btn-secondary" disabled>Pause</button>
+          <button type="button" id="resetTimerBtn" class="btn btn-outline">Reset</button>
+        </div>
+
+        <div class="timer-footer">
+          <span>Completed sessions today: <strong id="timerSessionCount">0</strong></span>
+        </div>
+      </section>
+
+      <!-- Task Manager Section -->
+      <section class="card tasks-card" aria-labelledby="tasks-heading">
+        <div class="tasks-header-row">
+          <h2 id="tasks-heading" class="section-title">Study Tasks</h2>
+          <div class="task-counters">
+            <span class="badge badge-pending"><strong id="pendingTaskCount">0</strong> Pending</span>
+            <span class="badge badge-completed"><strong id="completedTaskCount">0</strong> Done</span>
+          </div>
+        </div>
+
+        <!-- Task Form -->
+        <form id="taskForm" class="task-form" novalidate>
+          <div class="form-row">
+            <div class="form-group form-group-title">
+              <label for="taskTitleInput">Task description <span class="required-star">*</span></label>
+              <input 
+                type="text" 
+                id="taskTitleInput" 
+                name="taskTitle" 
+                placeholder="e.g. Solve Chapter 4 Exercises 1-10" 
+                autocomplete="off"
+                required
+              >
+            </div>
+            <div class="form-group form-group-subject">
+              <label for="taskSubjectInput">Subject <span class="required-star">*</span></label>
+              <input 
+                type="text" 
+                id="taskSubjectInput" 
+                name="taskSubject" 
+                placeholder="e.g. Mathematics" 
+                list="subjectSuggestions"
+                autocomplete="off"
+                required
+              >
+              <datalist id="subjectSuggestions">
+                <option value="Mathematics">
+                <option value="Physics">
+                <option value="Chemistry">
+                <option value="Biology">
+                <option value="History">
+                <option value="Literature">
+                <option value="Computer Science">
+                <option value="Economics">
+              </datalist>
+            </div>
+          </div>
+          <div class="form-error" id="formError" role="alert" style="display: none;"></div>
+          <button type="submit" class="btn btn-primary btn-block">Add Task</button>
+        </form>
+
+        <!-- Task List Filters -->
+        <div class="task-filter-bar">
+          <div class="filter-buttons" role="group" aria-label="Filter tasks">
+            <button type="button" class="filter-btn active" data-filter="all">All</button>
+            <button type="button" class="filter-btn" data-filter="pending">Pending</button>
+            <button type="button" class="filter-btn" data-filter="completed">Completed</button>
+          </div>
+          <button type="button" id="clearCompletedBtn" class="btn-text-danger" style="display: none;">
+            Clear Completed
+          </button>
+        </div>
+
+        <!-- Task List Display -->
+        <div class="task-list-wrapper">
+          <div id="emptyTasksMessage" class="empty-state">
+            <p class="empty-title">No tasks found</p>
+            <p class="empty-subtitle">Add your first assignment or study goal using the form above.</p>
+          </div>
+          <ul id="taskList" class="task-list" aria-label="Tasks list">
+            <!-- Populated by JavaScript -->
+          </ul>
+        </div>
+      </section>
+    </div>
+
+    <!-- Footer -->
+    <footer class="app-footer">
+      <p>StudySprint &bull; Local student productivity planner &bull; Stored in your browser</p>
+    </footer>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
